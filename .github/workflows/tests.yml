@@ -487,6 +487,7 @@ jobs:
   #     run: |
   #       pytest ${{ env.PYTEST_PARAMS }} -m "not integration" ${{ env.SUITES_EXCLUDED_FROM_WINDOWS }} test/document_stores/ --document_store_type=pinecone
 
+  # This job collects which Haystack components changed
   components-changed:
     runs-on: ubuntu-latest
     # Set job outputs to the results of the filter step
@@ -504,9 +505,9 @@ jobs:
 
   rest-and-ui-tests-linux:
     needs:
-     - mypy
-     - pylint
-     - rest-and-ui-changed
+      - mypy
+      - pylint
+      - rest-and-ui-changed
 
     runs-on: ubuntu-latest
     if: ${{ needs.components-changed.outputs.rest-and-ui == 'true' }}
@@ -521,18 +522,19 @@ jobs:
       run: |
         pip install rest_api/
         pip install ui/
+
     - name: Run tests
-      env:
-        TOKENIZERS_PARALLELISM: 'false'
       run: |
         pytest ${{ env.PYTEST_PARAMS }} rest_api/ ui/
 
   rest-and-ui-tests-windows:
     needs:
-     - mypy
-     - pylint
+      - mypy
+      - pylint
+      - rest-and-ui-changed
+
     runs-on: windows-latest
-    if: contains(github.event.pull_request.labels.*.name, 'topic:rest_api') && contains(github.event.pull_request.labels.*.name, 'topic:windows') || !github.event.pull_request.draft
+    if: ${{ needs.components-changed.outputs.rest-and-ui == 'true' }}
 
     steps:
     - uses: actions/checkout@v2
@@ -542,21 +544,12 @@ jobs:
       with:
         prefix: windows
 
-    - name: Set up Elasticsearch and pdftotext
-      run: |
-        choco install xpdf-utils
-        choco install openjdk11
-        refreshenv
-        choco install elasticsearch --version=7.9.2
-        refreshenv
-        Get-Service elasticsearch-service-x64 | Start-Service
     - name: Install REST API and UI
       run: |
         pip install rest_api/
         pip install ui/
+
     - name: Run tests
-      env:
-        TOKENIZERS_PARALLELISM: 'false'
       run: |
         pytest ${{ env.PYTEST_PARAMS }} ${{ env.SUITES_EXCLUDED_FROM_WINDOWS }} rest_api/ ui/
 
