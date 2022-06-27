@@ -507,7 +507,7 @@ jobs:
     needs:
       - mypy
       - pylint
-      - rest-and-ui-changed
+      - components-changed
 
     runs-on: ubuntu-latest
     if: ${{ needs.components-changed.outputs.rest-and-ui == 'true' }}
@@ -531,7 +531,7 @@ jobs:
     needs:
       - mypy
       - pylint
-      - rest-and-ui-changed
+      - components-changed
 
     runs-on: windows-latest
     if: ${{ needs.components-changed.outputs.rest-and-ui == 'true' }}
